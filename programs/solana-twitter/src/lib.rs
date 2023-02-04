@@ -1,25 +1,32 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::system_program;
 
 declare_id!("A4MVGRP4ycfRTe8kHuD6bB6vfEG2vu984V9KGzKqMDHo");
 
 #[program]
 pub mod solana_twitter {
+    // use anchor_lang::solana_program::entrypoint_deprecated::ProgramResult;
+    use anchor_lang::Result;
+
     use super::*;
 
-    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> ProgramResult {
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> Result<()> {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
         let author: &Signer = &ctx.accounts.author;
         let clock: Clock = Clock::get().unwrap();
 
         if topic.chars().count() > 50 {
             // Return a error...
-            return Err(ErrorCode::TopicTooLong.into());
+            return Err(error!(ErrorCode::TopicTooLong));
         }
 
         if content.chars().count() > 280 {
             // Return a error...
-            return Err(ErrorCode::ContentTooLong.into());
+            return Err(error!(ErrorCode::ContentTooLong));
         }
+
+        // require!(topic.chars().count() > 50, ErrorCode::TopicTooLong);
+        // require!(content.chars().count() > 280, ErrorCode::ContentTooLong);
 
         tweet.author = *author.key;
         tweet.timestamp = clock.unix_timestamp;
